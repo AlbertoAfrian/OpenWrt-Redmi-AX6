@@ -18,11 +18,11 @@ on:
 env:
   REPO_URL: https://github.com/1715173329/immortalwrt.git
   REPO_BRANCH: master-ax3000
-  FEEDS_CONF: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/feeds.conf.default
-  CONFIG_FILE: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/1.config
-  DIY_P1_SH: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/diy-part1.sh
-  DIY_P2_SH: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/diy-part2.sh
-  UPLOAD_BIN_DIR: true
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: AX6-5.15-Second.config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2-ax6.sh
+  UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
