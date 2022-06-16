@@ -8,22 +8,21 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build AX6 OpenWRT (K5.15-Second)
+name: XIAOMI-REDMI-AX6-IMMORTALWRT-V21
 
 on:
-  repository_dispatch:
   workflow_dispatch:
-#  schedule:
-#    - cron: 0 8 */5 * *
+  #schedule:
+     #- cron: 0 8 1 * *
 
 env:
-  REPO_URL: https://github.com/Boos4721/openwrt
-  REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: AX6-5.15-Second.config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2-ax6.sh
-  UPLOAD_BIN_DIR: false
+  REPO_URL: https://github.com/1715173329/immortalwrt.git
+  REPO_BRANCH: master-ax3000
+  FEEDS_CONF: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/feeds.conf.default
+  CONFIG_FILE: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/1.config
+  DIY_P1_SH: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/diy-part1.sh
+  DIY_P2_SH: router-config/XIAOMI-REDMI-AX6-IMMORTALWRT-V21/diy-part2.sh
+  UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
@@ -33,7 +32,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-20.04
-    timeout-minutes: 400
 
     steps:
     - name: Checkout
@@ -80,6 +78,13 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
 
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
     - name: Download package
       id: package
       run: |
@@ -94,7 +99,7 @@ jobs:
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j2 || make -j2 V=s
+        make -j$(nproc) || make -j1 || make -j1 V=s
         echo "::set-output name=status::success"
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
@@ -149,7 +154,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "::set-output name=release_tag::$(date +"AX6-OP-K5.15-Second.%Y.%m.%d-%H%M")"
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
         touch release.txt
         [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
         [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
@@ -161,7 +166,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.tag.outputs.release_tag }}
+        tag_name: XIAOMI-REDMI-AX6-IMMORTALWRT-V21_${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
         files: ${{ env.FIRMWARE }}/*
 
@@ -171,11 +176,3 @@ jobs:
         retain_days: 1
         keep_minimum_runs: 3
 
-    - name: Remove old Releases
-      uses: dev-drprasad/delete-older-releases@v0.1.0
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      with:
-        keep_latest: 3
-        delete_tags: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
